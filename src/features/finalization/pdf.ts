@@ -8,6 +8,7 @@ export type ReportSnapshot = {
   id: string; empresa: string; generated_at: string; version: number;
   operator_submission?: { user_id: string | null; created_at: string } | null;
   order: Row<"production_orders">; product: Row<"products">; line: Row<"production_lines">;
+  measurements?: Row<"checklist_measurements">[]; correction_releases?: Row<"quality_correction_releases">[];
   items: Row<"production_order_checklist">[]; notes: Row<"production_notes">[];
   ncs: Row<"non_conformities">[]; people: { id: string; nome: string }[];
 };
@@ -67,6 +68,16 @@ export async function generateFinalPdf(snapshot: ReportSnapshot, original?: Uint
     paragraph(`Resultado: ${item.conforme === null ? "Pendente" : item.conforme ? "CONFORME" : "NÃO CONFORME"}`);
     paragraph(`Operador: ${person(item.medido_por)} · Medição: ${date(item.data_medicao)}`);
     paragraph(`Revisão CQ: ${item.revisado_cq ? `${person(item.revisado_por)} · ${date(item.data_revisao)}` : item.requer_revisao_cq ? "Pendente" : "Não requerida"}`);
+    for (const m of snapshot.measurements?.filter(m=>m.checklist_item_id===item.id)||[]) {
+      paragraph(`Tentativa ${m.sequence}: ${m.measurement_type==="NUMBER"?quantity(m.numeric_value):m.measurement_type==="BOOLEAN"?m.boolean_value?"Sim":"Não":m.select_value||m.text_value||"Foto registrada"} ${m.unit||""} — ${m.compliant===true?"CONFORME":m.compliant===false?"NÃO CONFORME":"Resultado legado não informado"}`,bold);
+      const rules=m.configuration_snapshot as {resposta_conforme?:boolean;opcoes?:string[];opcoes_conformes?:string[]}|null;
+      if(m.measurement_type==="NUMBER")paragraph(`Faixa: ${m.minimum_value_snapshot??"Sem mínimo"}–${m.maximum_value_snapshot??"Sem máximo"} ${m.unit||""}`);
+      if(m.measurement_type==="BOOLEAN")paragraph(`Resposta conforme: ${(rules?.resposta_conforme??true)?"Sim":"Não"}`);
+      if(m.measurement_type==="SELECT")paragraph(`Opções: ${(rules?.opcoes||[]).join(", ")} · Conformes: ${(rules?.opcoes_conformes??rules?.opcoes??[]).join(", ")}`);
+      paragraph(`Operador: ${person(m.measured_by)} · ${date(m.measured_at)}`);
+      if(m.observation)paragraph(`Observação: ${m.observation}`);if(m.evidence_path)paragraph(`Evidência: ${m.evidence_path}`);
+      for(const nc of snapshot.ncs.filter(n=>n.checklist_item_id===item.id))paragraph(`NC relacionada: ${nc.codigo_nc} · Ação corretiva: ${nc.acao_imediata||"Não informada"} · Fechamento CQ: ${person(nc.encerrado_por)} · ${date(nc.data_fechamento)}`);
+    }
     if (item.observacao) paragraph(`Observação: ${item.observacao}`); if (item.foto_path) paragraph(`Evidência: ${item.foto_path}`); y -= 8;
   }
   section("Apontamentos — Paradas, Perdas, Ajustes e Observações");
@@ -84,6 +95,7 @@ export async function generateFinalPdf(snapshot: ReportSnapshot, original?: Uint
     paragraph(`CQ: ${nc.aprovado_cq === true ? "Aprovada" : nc.aprovado_cq === false ? "Cancelada/Rejeitada" : "Pendente"} · ${person(nc.encerrado_por)} · ${date(nc.data_fechamento)}`);
     if (nc.observacao_cq) paragraph(`Observação CQ: ${nc.observacao_cq}`); y -= 6;
   }
+  for(const r of snapshot.correction_releases||[]){paragraph(`Liberação para correção · NC ${snapshot.ncs.find(n=>n.id===r.non_conformity_id)?.codigo_nc||r.non_conformity_id}: ${person(r.released_by)} · ${date(r.released_at)}`);paragraph(`Ação imediata vigente: ${r.immediate_action} · Observação CQ: ${r.quality_observation}`);}
   section("Aprovações e responsáveis");
   paragraph(snapshot.operator_submission ? `Operador (envio ao CQ): ${person(snapshot.operator_submission.user_id)} · ${date(snapshot.operator_submission.created_at)}` : `Operador responsável registrado: ${person(o.operador_responsavel_id)} · Fim: ${date(o.fim_producao)}`);
   const measurementActors = [...new Set(snapshot.items.map(item => item.medido_por).filter(Boolean))];

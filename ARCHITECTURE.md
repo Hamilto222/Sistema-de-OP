@@ -1,4 +1,4 @@
-# Arquitetura — OP Digital 1.0.0
+# Arquitetura — OP Digital 1.0.1
 
 ## Stack e estrutura
 Next.js App Router, TypeScript estrito, Tailwind CSS e Server Components por padrão. Node.js 24, versões exatas e package-lock.json. Fonte do sistema; build Webpack. Client Components nas interações de login, menu de tablet, formulários, editor de itens e confirmações. Leituras e mutações permanecem no servidor.
@@ -118,12 +118,12 @@ Migrations 12–16 evoluem os enums existentes e booleano de aprovação CQ para
 Transições CQ da OP:
 - RELEASED/IN_PRODUCTION/AWAITING_QUALITY → BLOCKED_QUALITY: motivo obrigatório, REJECTED e assinatura real; notificações PCP/operadores autorizados.
 - AWAITING_QUALITY → AWAITING_PCP: APPROVED, produção concluída, obrigatórios medidos, todos os itens requerendo revisão revisados e ausência de NC impeditiva aberta; assinatura e notificação PCP atômicas.
-- BLOCKED_QUALITY → IN_PRODUCTION: justificativa, limpa decisão/fim/envio/revisões, mantém início e medições. Operador corrige/mede, CQ encerra NC e operador reenvia conforme regras estritas.
+- BLOCKED_QUALITY → IN_PRODUCTION: exclusivamente quality_release_correction, com NC impeditiva documentada IN_TREATMENT; alteração de status da NC e quality_decide_order não liberam execução. Limpa decisão/fim/envio/revisões, mantém início e medições. Operador corrige/mede, CQ encerra NC e operador reenvia conforme regras estritas.
 - BLOCKED_QUALITY → AWAITING_QUALITY: justificativa, produção já concluída, obrigatórios e impedimentos resolvidos; conserva fim/revisões e renova envio. Item impeditivo não conforme preservado exige NC correspondente fechada e aprovada, sem apagar resposta original.
 
 `private.assert_quality_ready` compartilha critérios de retorno/aprovação; aprovação também exige revisões. Gravações travam OP antes de item/NC; versão/updated_at detectam concorrência. Ator/data são obtidos de auth.uid()/now(), inclusive ADMIN; clientes não definem assinaturas. Reiniciar revisões não representa nova medição: trigger de bloqueio só reage a INSERT ou alterações efetivas de resposta/conformidade/evidência/data da medição, prevenindo novo bloqueio indevido durante retorno.
 
-NC nasce OPEN; OPEN → IN_TREATMENT/AWAITING_QUALITY/CANCELLED; IN_TREATMENT → AWAITING_QUALITY/CANCELLED; AWAITING_QUALITY → IN_TREATMENT/CLOSED/CANCELLED. CLOSED/CANCELLED são terminais. Operador mantém somente tratamento próprio já autorizado, sem fechamento/cancelamento/classificação CQ. CQ/ADMIN exige ação imediata/responsável ativo/observação CQ para fechar; cancelamento exige justificativa. Nova NC/tratamento só em RELEASED/IN_PRODUCTION/BLOCKED_QUALITY/AWAITING_QUALITY. Exceção: CQ/ADMIN trata NC já não impeditiva em AWAITING_PCP, proibindo nova NC ou torná-la impeditiva e mantendo aprovação da OP. FINALIZED/CANCELLED continuam consulta.
+NC nasce OPEN; OPEN → IN_TREATMENT/AWAITING_QUALITY/CANCELLED; IN_TREATMENT → AWAITING_QUALITY/CLOSED/CANCELLED; AWAITING_QUALITY → IN_TREATMENT/CLOSED/CANCELLED. CLOSED/CANCELLED são terminais. Operador mantém tratamento próprio não impeditivo anteriormente autorizado; NC impeditiva é somente consultável e seu tratamento pertence ao CQ/ADMIN. CQ/ADMIN exige ação imediata/responsável ativo/observação CQ para fechar; cancelamento exige justificativa. Nova NC/tratamento só em RELEASED/IN_PRODUCTION/BLOCKED_QUALITY/AWAITING_QUALITY. Exceção: CQ/ADMIN trata NC já não impeditiva em AWAITING_PCP, proibindo nova NC ou torná-la impeditiva e mantendo aprovação da OP. FINALIZED/CANCELLED continuam consulta.
 
 Contador anual privado com UPSERT serializado gera `NC-AAAA-00001` pelo timezone São Paulo, sem colidir em concorrência ou aceitar código do cliente. Migração renumera NCs existentes por abertura/id, preserva código anterior e registra auditoria. Contador não é acessível a authenticated. Exclusão física de NC revogada inclusive ADMIN.
 
@@ -182,3 +182,26 @@ A aplicação requer runtime Node (Sharp/fontkit/PDF e filesystem de fontes), n�
 DEPLOYMENT.md documenta Supabase + Vercel, homologação, backup de banco e objetos, restauração e atualização. O limite Next.js de 22 MB não supera limites do provedor: na Vercel, payload de Functions de aproximadamente 4,5 MB restringe uploads industriais. Homologação de tempo/memória para relatórios também é obrigatória. Não foi alterado o fluxo de upload nesta revisão documental; hospedagem Node com limites adequados atende ao contrato original de tamanhos.
 
 A versão 1.0.0 consolida os módulos existentes, sem novos recursos. Publicação remota, restauração gerenciada e carga real permanecem validações de operação. Segurança e Deploy não são declarados concluídos enquanto houver as pendências de TEST_REPORT.md.
+
+## Correção controlada e histórico de medições — 1.0.1
+
+Migrations novas 28–31 aplicam-se sobre a instalação existente; nenhuma migration anterior foi alterada:
+
+- `20261008002800_controlled_nc_correction.sql`: checklist_measurements, quality_correction_releases, referências da NC para medições de origem/correção, recuperação de tentativas auditadas, RLS somente leitura para clientes, captura/auditoria de novas tentativas, liberação explícita, deduplicação de NC e snapshot ampliado de PDF.
+- `20261008002900_correction_integrity.sql`: texto significativo Unicode, RPC de aprovação/fechamento de correção, FKs compostas medição/item e proteção de referências derivadas.
+- `20261008003000_protect_blocking_nc_treatment.sql`: vínculo e caráter impeditivo do problema medido imutáveis para clientes; operador não altera instruções/tratamento de NC impeditiva; requisitos textuais de fechamento também protegidos por trigger.
+- `20261008003100_correction_review_states.sql`: revisão de tentativa posterior à abertura durante IN_PRODUCTION, com NC IN_TREATMENT ou AWAITING_QUALITY. Revisão normal de toda a OP continua no fluxo CQ existente.
+
+`checklist_measurements` guarda UUID, OP/item, sequência única por item, tipo/valores, unidade/limites/configuração em snapshot, conformidade, observação/evidência e identidade/horários. FK composta impede relacionar item de outra OP. Índices atendem histórico ordenado, OP/item e ator. Clientes autenticados só SELECT sob `private.can_access_order`; INSERT/UPDATE/DELETE são exclusivos de triggers/manutenção confiável. O estado atual do checklist continua sendo atualizado na mesma transação. Alterações de revisão CQ não geram tentativas fictícias.
+
+Trigger `ab_capture_measurement` roda antes do bloqueio automático: registra a tentativa, depois o bloqueio vincula a NC à medição de origem. Em nova falha, a NC impeditiva aberta do item é reutilizada. A consulta histórica relaciona item/OP à NC; origin_measurement_id identifica o evento inicial e correction_measurement_id a tentativa aprovada no fechamento. A auditoria preserva cada ocorrência e alteração.
+
+`quality_release_correction` é SECURITY INVOKER e chama um helper privado restrito, não exposto no PostgREST, que revalida o perfil ativo CQ/ADMIN, acesso, OP/NC, versão/updated_at e instruções. Ordem de locks: OP → NC. `quality_correction_releases` preserva NC/OP, versão anterior, ator/data, responsável, ação/observação vigentes e estados. Unique OP/versão e o trigger de transição impedem retomada duplicada ou PATCH/genérico sem liberação explícita. Evento, status, auditoria e notificações pertencem à mesma transação; falha desfaz todos.
+
+`quality_close_correction` também é SECURITY INVOKER, trava OP/NC e exige versão/updated_at. `guard_nc` aplica os requisitos mesmo em atualização direta: medição atual conforme posterior à abertura e à última falha, revisão CQ, responsável ativo, ação/observação e liberação rastreável. Vínculo/impedimento não podem ser removidos para contornar fechamento. CQ/ADMIN calcula encerrado_por/data_fechamento/correction_measurement_id. Fechamento não muda o status da OP nem a aprova.
+
+Notificação de liberação vai ao operador responsável; se não definido, aos operadores ativos da linha ativa autorizada. Toda nova tentativa ligada a NC impeditiva aberta notifica QUALIDADE, conforme ou não conforme. Repetir falha bloqueia e exige outra liberação explícita. RPCs existentes do operador conservam RLS, lock de OP/item, cálculo no banco e controle de edição operacional.
+
+Telas alteradas: execução `/operador/op/[id]`, OP CQ `/qualidade/op/[id]` e detalhe `/qualidade/nao-conformidades/[id]`. Componentes MeasurementHistory e CorrectionForm reutilizam sessão real, controle de ação e estilos existentes. Histórico é paginado integralmente; evidência por `/sistema/ordens/[id]/medicoes/[measurementId]/evidencia` exige sessão, OP/medição sob RLS e signed URL de 60s com no-store/no-referrer.
+
+`capture_final_report` inclui todas as tentativas/liberações e seus autores, sem limite PostgREST. Gerador pdf-lib inclui tentativas, snapshots de regras, NC e liberação. Campos novos são opcionais no tipo de snapshot para preservar a retomada de relatórios antigos. Não reescrever arquivos prontos. Recuperação histórica utiliza apenas auditoria e estado já persistidos; dados nunca gravados não são reconstruíveis.

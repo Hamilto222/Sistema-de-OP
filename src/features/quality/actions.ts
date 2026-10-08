@@ -1,4 +1,5 @@
 "use server";
+import { z } from "zod";
 import { validateUpload } from "@/services/upload-validation";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
@@ -36,4 +37,14 @@ export async function saveNc(_previous:QualityState,form:FormData):Promise<Quali
  const before=await evidence(supabase,input.production_order_id,form,"evidencia_antes");if(before.error)return {error:before.error};
  const after=await evidence(supabase,input.production_order_id,form,"evidencia_depois");if(after.error)return {error:after.error};
  const result=await supabase.rpc("quality_save_nc",{payload:{...input,evidencia_antes_path:before.path||null,evidencia_depois_path:after.path||null}});if(result.error)return failure(result.error);changed();if(!input.id)redirect(`/qualidade/nao-conformidades/${result.data}?sucesso=criada`);return {success:"NC salva com histórico e auditoria."};
+}
+
+const correctionSchema = z.object({nc_id:z.uuid(),version:z.coerce.number().int().positive(),updated_at:z.string().datetime({offset:true})});
+export async function releaseCorrection(_previous:QualityState,form:FormData):Promise<QualityState>{
+ const {supabase}=await requireRole(["ADMIN","QUALIDADE"]);const parsed=correctionSchema.safeParse(Object.fromEntries(form));if(!parsed.success)return invalid(parsed.error.issues);
+ const input=parsed.data,result=await supabase.rpc("quality_release_correction",{nc_id:input.nc_id,expected_version:input.version,expected_updated_at:input.updated_at});if(result.error)return failure(result.error);changed();return {success:"OP liberada para correção. A NC permanece em tratamento."};
+}
+export async function closeCorrection(_previous:QualityState,form:FormData):Promise<QualityState>{
+ const {supabase}=await requireRole(["ADMIN","QUALIDADE"]);const parsed=correctionSchema.extend({observation:z.string().trim().min(1).max(4000)}).safeParse(Object.fromEntries(form));if(!parsed.success)return invalid(parsed.error.issues);
+ const input=parsed.data,result=await supabase.rpc("quality_close_correction",{nc_id:input.nc_id,expected_version:input.version,expected_updated_at:input.updated_at,observation:input.observation});if(result.error)return failure(result.error);changed();return {success:"Correção aprovada e NC fechada. A OP mantém seu fluxo operacional."};
 }

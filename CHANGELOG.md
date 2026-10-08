@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.0.1 — 08/10/2026
+
+- Corrigido impasse da NC impeditiva: IN_TREATMENT não libera a OP; CQ/ADMIN executa LIBERAR PARA CORREÇÃO com responsável ativo, ação imediata, observação e confirmação.
+- Migrations incrementais 28–31, sem alterar as anteriores: histórico imutável de tentativas com snapshots de regras, liberação rastreável e fechamento vinculado à nova medição conforme revisada.
+- Nova tentativa não conforme preserva histórico, bloqueia novamente e reutiliza a NC aberta; conformidade não fecha a NC automaticamente. Notificações, auditoria e mudanças de estado são transacionais.
+- Proteção de instruções CQ/vínculo/impedimento contra edição direta; permissões operacionais continuam restritas. Revisão/fechamento da NC e aprovação da OP são ações distintas.
+- Ajustes locais nas telas Operador/CQ/NC e evidências históricas privadas; relatórios novos incluem todas as tentativas e liberações sem substituir PDFs antigos.
+- Testes reais de banco e tablet para 3650 → 3350, permissões, concorrência, rollback, snapshots, evidências e regressão; resultados em TEST_REPORT.md.
+
 ## 1.0.0 — 08/10/2026
 
 - Consolidação dos módulos existentes e documentação final, sem novos recursos de negócio.

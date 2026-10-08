@@ -25,7 +25,7 @@ async function logout(page) {
 const cookie = async context => (await context.cookies()).map(c => `${c.name}=${c.value}`).join('; ');
 const card = (page, name) => page.getByRole('article').filter({ has: page.getByRole('heading', { name, exact: true }) });
 async function save(article) {
-  await article.getByRole('button', { name: 'Salvar medição', exact: true }).click();
+  await article.getByRole('button', { name: /^(Salvar medição|Registrar nova medição)$/ }).click();
   await expect(article.getByText('CONFORME', { exact: true })).toBeVisible();
 }
 
@@ -66,7 +66,7 @@ test('fluxo real de 20 etapas, NC impeditiva, PDF aberto e reabertura preservand
   expect((await f.items(id))[1].medido_por).toBe(f.users[3].id);
   await measure.getByLabel('Valor medido (mm)').fill('8');
   await measure.getByLabel('Observação (obrigatória se não conforme)').fill('Diâmetro abaixo do limite');
-  await measure.getByRole('button', { name: 'Salvar medição', exact: true }).click();
+  await measure.getByRole('button', { name: /^(Salvar medição|Registrar nova medição)$/ }).click();
   await expect(measure.getByText('NÃO CONFORME', { exact: true })).toBeVisible();
   expect((await f.read(id)).status).toBe('BLOCKED_QUALITY');
   const nc = checked(await f.admin.from('non_conformities').select().eq('production_order_id', id).single());
@@ -76,10 +76,17 @@ test('fluxo real de 20 etapas, NC impeditiva, PDF aberto e reabertura preservand
   // A correção exige primeiro o retorno autorizado pelo CQ: o bloqueio não é burlado.
   await logout(page);
   await login(page, 2);
-  await page.goto(`/qualidade/op/${id}`);
-  await page.getByLabel('Justificativa do retorno', { exact: true }).fill('Correção autorizada e supervisionada');
-  await page.getByRole('button', { name: 'Retornar à produção', exact: true }).click();
-  await expect(page.getByRole('main').getByText('Em produção', { exact: true })).toBeVisible();
+  await page.goto(`/qualidade/nao-conformidades/${nc.id}`);
+  await page.getByLabel('Status da NC').selectOption('IN_TREATMENT');
+  await page.getByLabel('Responsável', { exact: true }).selectOption(f.users[3].id);
+  await page.getByLabel('Ação imediata', { exact: true }).fill('Correção autorizada e supervisionada');
+  await page.getByLabel('Observação CQ', { exact: true }).fill('Ajustar e registrar nova medição');
+  await page.getByRole('button', { name: 'Salvar NC', exact: true }).click();
+  await expect(page.getByRole('button', { name: 'LIBERAR PARA CORREÇÃO', exact: true })).toBeVisible();
+  expect((await f.read(id)).status).toBe('BLOCKED_QUALITY');
+  await page.getByRole('button', { name: 'LIBERAR PARA CORREÇÃO', exact: true }).click();
+  await page.getByRole('button', { name: 'Confirmar liberação', exact: true }).click();
+  await expect.poll(async () => (await f.read(id)).status).toBe('IN_PRODUCTION');
   await logout(page);
   await login(page, 3);
   await page.goto(`/operador/op/${id}`);
@@ -118,6 +125,8 @@ test('fluxo real de 20 etapas, NC impeditiva, PDF aberto e reabertura preservand
   await page.getByLabel('Ação imediata', { exact: true }).fill('Equipamento corrigido e reinspecionado');
   await page.getByLabel('Responsável', { exact: true }).selectOption(f.users[2].id);
   await page.getByLabel('Observação CQ', { exact: true }).fill('Correção validada pelo Controle de Qualidade');
+  await page.getByRole('button', { name: 'REVISAR ITEM', exact: true }).click();
+  await expect(page.getByText('Nova medição aguardando revisão do CQ', { exact: true })).toHaveCount(0);
   await page.getByLabel('Evidência depois (opcional)').setInputFiles({ name: 'depois.png', mimeType: 'image/png', buffer: photoPng() });
   for (const [status, label] of [['IN_TREATMENT', 'Em tratamento'], ['AWAITING_QUALITY', 'Aguardando CQ'], ['CLOSED', 'Fechada']]) {
     await page.getByLabel('Status da NC', { exact: true }).selectOption(status);
@@ -141,7 +150,7 @@ test('fluxo real de 20 etapas, NC impeditiva, PDF aberto e reabertura preservand
   await page.goto(`/qualidade/op/${id}`);
   for (const item of await f.items(id)) {
     const article = card(page, `${item.ordem}. ${item.item}`);
-    await article.getByRole('button', { name: 'REVISAR ITEM', exact: true }).click();
+    if (!item.revisado_cq) await article.getByRole('button', { name: 'REVISAR ITEM', exact: true }).click();
     await expect(article.getByText('Revisão CQ concluída', { exact: true })).toBeVisible();
   }
   await page.getByRole('button', { name: 'APROVAR OP', exact: true }).click();
@@ -213,7 +222,7 @@ test('fluxo real de 20 etapas, NC impeditiva, PDF aberto e reabertura preservand
   await page.goto(`/qualidade/op/${id}`);
   for (const item of await f.items(id)) {
     const article = card(page, `${item.ordem}. ${item.item}`);
-    await article.getByRole('button', { name: 'REVISAR ITEM', exact: true }).click();
+    if (!item.revisado_cq) await article.getByRole('button', { name: 'REVISAR ITEM', exact: true }).click();
     await expect(article.getByText('Revisão CQ concluída', { exact: true })).toBeVisible();
   }
   await page.getByRole('button', { name: 'APROVAR OP', exact: true }).click();

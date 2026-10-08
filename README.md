@@ -1,4 +1,4 @@
-# OP Digital 1.0.0
+# OP Digital 1.0.1
 
 Sistema de Gestão de Ordens de Produção para computadores e tablets industriais. Fluxo real: PCP cria/libera → operador executa → Qualidade revisa/trata NCs → PCP finaliza com PDF privado. PostgreSQL mantém histórico, auditoria e versões após reabertura.
 
@@ -116,3 +116,9 @@ Crie o projeto Supabase de homologação, configure Auth e aplique `db push` con
 Validação local não equivale a deploy homologado. Storage e PostgreSQL não têm transação distribuída: PDF pendente tem retomada explícita; arquivos órfãos privados precisam de manutenção autorizada. Uploads são parseados/decodificados, sem antivírus; acesso direto autorizado ao Storage valida metadata, não bytes. URLs assinadas já emitidas permanecem válidas até expirar. Não existe execução offline.
 
 A Vercel limita o tamanho de requisições a Functions, abaixo do limite de PDF de 20 MB aceito pelo app. Não anuncie suporte a uploads grandes nessa hospedagem sem validar a infraestrutura; veja DEPLOYMENT.md. Existe alerta upstream na cadeia de ferramentas ESLint registrado no relatório; dependências de produção foram verificadas separadamente. Segurança e publicação remota continuam pendentes de homologação.
+
+### Atualização 1.0.1: correção de NC impeditiva
+
+Aplique as novas migrations ao projeto Supabase vinculado com `npx supabase db push`, então publique o código 1.0.1. Nenhum reset ou edição de migration aplicada é necessário. Valide em homologação antes de atualizar a produção.
+
+IN_TREATMENT não libera a OP. CQ/ADMIN deve preencher responsável, ação imediata e observação e confirmar LIBERAR PARA CORREÇÃO. Cada tentativa fica no histórico; CQ revisa a nova medição conforme e fecha a NC separadamente da aprovação da OP. Consulte PROJECT_SPEC.md, ARCHITECTURE.md e TEST_REPORT.md para os contratos e evidências. O ZIP/tag 1.0.0 permanece como entrega histórica dessa versão.

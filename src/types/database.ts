@@ -95,6 +95,101 @@ export type Database = {
           },
         ]
       }
+      checklist_measurements: {
+        Row: {
+          boolean_value: boolean | null
+          checklist_item_id: string
+          compliant: boolean | null
+          configuration_snapshot: Json
+          created_at: string
+          evidence_path: string | null
+          id: string
+          maximum_value_snapshot: number | null
+          measured_at: string
+          measured_by: string | null
+          measurement_type: Database["public"]["Enums"]["response_type"]
+          minimum_value_snapshot: number | null
+          numeric_value: number | null
+          observation: string | null
+          production_order_id: string
+          select_value: string | null
+          sequence: number
+          text_value: string | null
+          unit: string | null
+        }
+        Insert: {
+          boolean_value?: boolean | null
+          checklist_item_id: string
+          compliant?: boolean | null
+          configuration_snapshot?: Json
+          created_at?: string
+          evidence_path?: string | null
+          id?: string
+          maximum_value_snapshot?: number | null
+          measured_at: string
+          measured_by?: string | null
+          measurement_type: Database["public"]["Enums"]["response_type"]
+          minimum_value_snapshot?: number | null
+          numeric_value?: number | null
+          observation?: string | null
+          production_order_id: string
+          select_value?: string | null
+          sequence: number
+          text_value?: string | null
+          unit?: string | null
+        }
+        Update: {
+          boolean_value?: boolean | null
+          checklist_item_id?: string
+          compliant?: boolean | null
+          configuration_snapshot?: Json
+          created_at?: string
+          evidence_path?: string | null
+          id?: string
+          maximum_value_snapshot?: number | null
+          measured_at?: string
+          measured_by?: string | null
+          measurement_type?: Database["public"]["Enums"]["response_type"]
+          minimum_value_snapshot?: number | null
+          numeric_value?: number | null
+          observation?: string | null
+          production_order_id?: string
+          select_value?: string | null
+          sequence?: number
+          text_value?: string | null
+          unit?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "checklist_measurements_checklist_item_id_production_order__fkey"
+            columns: ["checklist_item_id", "production_order_id"]
+            isOneToOne: false
+            referencedRelation: "production_order_checklist"
+            referencedColumns: ["id", "production_order_id"]
+          },
+          {
+            foreignKeyName: "checklist_measurements_measured_by_fkey"
+            columns: ["measured_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "checklist_measurements_production_order_id_fkey"
+            columns: ["production_order_id"]
+            isOneToOne: false
+            referencedRelation: "pcp_order_list"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "checklist_measurements_production_order_id_fkey"
+            columns: ["production_order_id"]
+            isOneToOne: false
+            referencedRelation: "production_orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       checklist_template_items: {
         Row: {
           ativo: boolean
@@ -277,6 +372,7 @@ export type Database = {
           checklist_item_id: string | null
           codigo_legado: string | null
           codigo_nc: string
+          correction_measurement_id: string | null
           created_at: string
           created_by: string
           data_abertura: string
@@ -288,6 +384,7 @@ export type Database = {
           id: string
           impeditiva: boolean
           observacao_cq: string | null
+          origin_measurement_id: string | null
           production_order_id: string
           responsavel_id: string | null
           severidade: Database["public"]["Enums"]["nc_severity"]
@@ -301,6 +398,7 @@ export type Database = {
           checklist_item_id?: string | null
           codigo_legado?: string | null
           codigo_nc: string
+          correction_measurement_id?: string | null
           created_at?: string
           created_by?: string
           data_abertura?: string
@@ -312,6 +410,7 @@ export type Database = {
           id?: string
           impeditiva?: boolean
           observacao_cq?: string | null
+          origin_measurement_id?: string | null
           production_order_id: string
           responsavel_id?: string | null
           severidade: Database["public"]["Enums"]["nc_severity"]
@@ -325,6 +424,7 @@ export type Database = {
           checklist_item_id?: string | null
           codigo_legado?: string | null
           codigo_nc?: string
+          correction_measurement_id?: string | null
           created_at?: string
           created_by?: string
           data_abertura?: string
@@ -336,6 +436,7 @@ export type Database = {
           id?: string
           impeditiva?: boolean
           observacao_cq?: string | null
+          origin_measurement_id?: string | null
           production_order_id?: string
           responsavel_id?: string | null
           severidade?: Database["public"]["Enums"]["nc_severity"]
@@ -344,6 +445,20 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "nc_correction_item_fk"
+            columns: ["correction_measurement_id", "checklist_item_id"]
+            isOneToOne: false
+            referencedRelation: "checklist_measurements"
+            referencedColumns: ["id", "checklist_item_id"]
+          },
+          {
+            foreignKeyName: "nc_origin_item_fk"
+            columns: ["origin_measurement_id", "checklist_item_id"]
+            isOneToOne: false
+            referencedRelation: "checklist_measurements"
+            referencedColumns: ["id", "checklist_item_id"]
+          },
           {
             foreignKeyName: "non_conformities_checklist_item_id_fkey"
             columns: ["checklist_item_id"]
@@ -359,6 +474,13 @@ export type Database = {
             referencedColumns: ["id", "production_order_id"]
           },
           {
+            foreignKeyName: "non_conformities_correction_measurement_id_fkey"
+            columns: ["correction_measurement_id"]
+            isOneToOne: false
+            referencedRelation: "checklist_measurements"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "non_conformities_created_by_fkey"
             columns: ["created_by"]
             isOneToOne: false
@@ -370,6 +492,13 @@ export type Database = {
             columns: ["encerrado_por"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "non_conformities_origin_measurement_id_fkey"
+            columns: ["origin_measurement_id"]
+            isOneToOne: false
+            referencedRelation: "checklist_measurements"
             referencedColumns: ["id"]
           },
           {
@@ -919,6 +1048,91 @@ export type Database = {
           },
         ]
       }
+      quality_correction_releases: {
+        Row: {
+          id: string
+          immediate_action: string
+          new_status: Database["public"]["Enums"]["order_status"]
+          non_conformity_id: string
+          order_version: number
+          previous_status: Database["public"]["Enums"]["order_status"]
+          production_order_id: string
+          quality_observation: string
+          released_at: string
+          released_by: string
+          responsible_id: string
+        }
+        Insert: {
+          id?: string
+          immediate_action: string
+          new_status?: Database["public"]["Enums"]["order_status"]
+          non_conformity_id: string
+          order_version: number
+          previous_status?: Database["public"]["Enums"]["order_status"]
+          production_order_id: string
+          quality_observation: string
+          released_at?: string
+          released_by: string
+          responsible_id: string
+        }
+        Update: {
+          id?: string
+          immediate_action?: string
+          new_status?: Database["public"]["Enums"]["order_status"]
+          non_conformity_id?: string
+          order_version?: number
+          previous_status?: Database["public"]["Enums"]["order_status"]
+          production_order_id?: string
+          quality_observation?: string
+          released_at?: string
+          released_by?: string
+          responsible_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quality_correction_releases_non_conformity_id_fkey"
+            columns: ["non_conformity_id"]
+            isOneToOne: false
+            referencedRelation: "non_conformities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quality_correction_releases_non_conformity_id_fkey"
+            columns: ["non_conformity_id"]
+            isOneToOne: false
+            referencedRelation: "quality_nc_list"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quality_correction_releases_production_order_id_fkey"
+            columns: ["production_order_id"]
+            isOneToOne: false
+            referencedRelation: "pcp_order_list"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quality_correction_releases_production_order_id_fkey"
+            columns: ["production_order_id"]
+            isOneToOne: false
+            referencedRelation: "production_orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quality_correction_releases_released_by_fkey"
+            columns: ["released_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quality_correction_releases_responsible_id_fkey"
+            columns: ["responsible_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       pcp_order_list: {
@@ -1158,6 +1372,15 @@ export type Database = {
         Args: { expected_version: number; order_id: string }
         Returns: undefined
       }
+      quality_close_correction: {
+        Args: {
+          expected_updated_at: string
+          expected_version: number
+          nc_id: string
+          observation: string
+        }
+        Returns: undefined
+      }
       quality_dashboard: { Args: never; Returns: Json }
       quality_decide_order: {
         Args: {
@@ -1171,6 +1394,14 @@ export type Database = {
       quality_nc_document: {
         Args: { nc_id: string; order_id: string; which_document: string }
         Returns: Json
+      }
+      quality_release_correction: {
+        Args: {
+          expected_updated_at: string
+          expected_version: number
+          nc_id: string
+        }
+        Returns: string
       }
       quality_review_item: {
         Args: { expected_updated_at: string; item_id: string; order_id: string }

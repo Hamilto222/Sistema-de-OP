@@ -125,3 +125,17 @@ Resolver a pendência upstream de Segurança registrada em TEST_REPORT.md e plan
 
 - Verificação final 1.0.0: instalação pelo lockfile, typecheck, ESLint, build e **193 testes aprovados (107 Node + 86 Chromium), sem falhas/ignorados**. Última alteração textual da homepage conferida por smoke HTTP e nova build. Dois PDFs privados preservados, hashes/parsing válidos e estado FINALIZED confirmados.
 - Pacote de fonte/documentação `op-digital-v1.0.0.zip` gerado e conferido, sem dependências instaladas/build/credenciais/temporários. Publicação, homologação de limites e recuperação remota continuam pendentes.
+
+## Correção de NC impeditiva — 1.0.1
+
+- [x] Migrations incrementais 28–31, histórico append-only, RLS/FKs/índices e recuperação de tentativas persistidas; nenhuma migration antiga editada.
+- [x] IN_TREATMENT mantém bloqueio; ação explícita CQ/ADMIN LIBERAR PARA CORREÇÃO com confirmação, requisitos, locks, ator/data/instruções e notificação transacional.
+- [x] Novas medições preservam tentativas/regras; falha bloqueia/reutiliza NC, conformidade aguarda revisão e não fecha automaticamente.
+- [x] Revisão/fechamento de NC exige nova medição conforme válida e CQ; fechamento não aprova a OP. Permissões operacionais não ampliadas.
+- [x] Operador/CQ/NC exibem aviso, instruções e histórico; evidências privadas e PDF com todas as tentativas/liberações.
+- [x] Cinco casos novos de banco, incluindo RBAC/concorrência/rollback/snapshots; regressão Node 112/112 aprovada.
+- [x] Validação final Chromium das duas novas suítes e regressão integral: 88/88 aprovados, zero falhas/ignorados; fluxo completo e reabertura preservados.
+- [x] Instalação limpa isolada sem seed: 31 migrations, 14 tabelas RLS, quatro buckets privados, FKs validadas e histórico sem grants de escrita de clientes. Auth real/inativo e lint SQL passaram; instância principal preservada.
+- [x] Typecheck, lint, SQL e build de produção aprovados; documentação do contrato atualizada.
+
+**Resultado final: 200 cenários (112 Node + 88 Chromium), typecheck, lint, SQL e build aprovados.** PDF com 3650/3350 aberto e inspecionado; cinco PDFs anteriores conferidos por hash/páginas/UUID. Resultados em TEST_REPORT.md. Publicação/migrations remotas continuam pendentes; o ZIP/tag 1.0.0 permanece histórico dessa versão.

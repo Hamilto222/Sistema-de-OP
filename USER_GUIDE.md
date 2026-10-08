@@ -14,7 +14,7 @@ Entre em `/login` com a conta provisionada pelo administrador. Seu perfil precis
 
 1. Em “Minhas OPs”, escolha o card da ordem permitida a você ou sua linha. Confira produto/lote e abra “Visualizar OP”.
 2. Na OP Liberada, use “INICIAR PRODUÇÃO”. Preencha Preparação, Processo e Finalização seguindo instruções e limites.
-3. Salve cada medição. O servidor calcula o resultado. Em NÃO CONFORME, informe observação; item impeditivo bloqueia a OP e abre NC. Aguarde retorno autorizado pela Qualidade para corrigir.
+3. Salve cada medição. O servidor calcula o resultado. Em NÃO CONFORME, informe observação; item impeditivo bloqueia a OP e abre NC. Aguarde a ação LIBERAR PARA CORREÇÃO da Qualidade. Mudar a NC para Em tratamento não libera a OP. Após o aviso de liberação, consulte as instruções e use Registrar nova medição; a tentativa anterior permanece no histórico.
 4. Use “+ Apontamento” para observação, parada, perda, ajuste, retrabalho, manutenção ou segurança. Informe dados e foto quando necessário.
 5. Informe quantidade produzida, perdas (inclusive zero) e observação final. Use “ENVIAR AO CONTROLE DE QUALIDADE”. Obrigatórios ou impedimentos pendentes impedem o envio.
 
@@ -26,7 +26,7 @@ Botões e campos são amplos para tablet. Após erro, confira a mensagem antes d
 2. Use “REVISAR ITEM” nos itens destacados. A revisão registra você e o horário sem reescrever a medição.
 3. Em Não conformidades, registre descrição, severidade, ação imediata, responsável e evidências. O fluxo é Aberta → Em tratamento/Aguardando CQ → Fechada; fechamento exige ação, responsável ativo e observação CQ. Cancelamento exige justificativa. O histórico é preservado.
 4. “APROVAR OP” exige itens completos/revisados e impedimentos resolvidos; envia ao PCP. “BLOQUEAR / REPROVAR” exige motivo.
-5. Em OP bloqueada, retorno controlado à produção permite correção/novo envio; retorno à revisão exige execução concluída e tratamento rastreável. Não escolher um destino apenas para contornar pendências.
+5. Para liberar uma OP bloqueada para correção, abra a NC impeditiva, selecione Em tratamento e preencha responsável ativo, ação imediata e observação CQ. Salve e confirme LIBERAR PARA CORREÇÃO. A NC permanece aberta. Após a nova medição conforme, revise o item e confirme APROVAR CORREÇÃO / FECHAR NC. O operador ainda precisa concluir e enviar a OP para sua aprovação final. Fechar a NC não aprova a OP.
 
 ## Administrador
 

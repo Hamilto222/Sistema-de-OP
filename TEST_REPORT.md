@@ -1,5 +1,69 @@
 # OP Digital — relatório de auditoria técnica
 
+## Correção de NC impeditiva — versão 1.0.1 — 08/10/2026
+
+### Resultado desta correção
+
+**200 cenários distintos aprovados: 112/112 testes Node de banco/Auth/Storage/arquivos e 88/88 Chromium, zero falhas, ignorados ou TODOs.** Incluem cinco novos casos críticos de banco e duas suítes novas de navegador. TypeScript, ESLint, lint SQL e build de produção passaram. Sem mocks de autenticação, PostgreSQL ou Storage.
+
+As migrations 28–31 foram aplicadas incrementalmente ao Supabase local existente, sem reset e sem alterar migrations antigas. Todas as **31 migrations** também passaram em um projeto Supabase isolado e vazio, sem seed: 14 tabelas com RLS, quatro buckets privados, zero constraints públicas não validadas e zero grants INSERT/UPDATE/DELETE de clientes nas tabelas de histórico/liberação. Lint SQL do projeto novo passou; Auth real criou perfil OPERADOR inativo, anônimo não teve grants, histórico foi invisível ao inativo e RPC de liberação retornou 42501. A instância descartável foi encerrada sem afetar a principal.
+
+### Problemas encontrados e correções
+
+| Problema | Correção verificada |
+|---|---|
+| Operador permanecia impedido de registrar correção após tratamento da NC | Ação formal LIBERAR PARA CORREÇÃO, somente CQ/ADMIN, com tratamento documentado e transação; IN_TREATMENT isoladamente mantém BLOCKED_QUALITY |
+| Valor atual sobrescrevia a tentativa anterior | checklist_measurements append-only, sequência por item e snapshots NUMBER/BOOLEAN/SELECT; estado atual do checklist continua separado |
+| Nova falha poderia criar outra NC para o mesmo problema | Lock da OP e reutilização da NC impeditiva aberta do item; 3650 e 3600 permanecem em tentativas distintas da mesma NC |
+| Fechamento não exigia nova medição conforme revisada | Trigger/RPC exigem tentativa atual conforme posterior à abertura e à última falha, revisão CQ e requisitos de tratamento |
+| Retorno genérico à produção não tinha evento formal de liberação | Transição B → IN exige liberação registrada para a versão/ator; quality_decide_order e PATCH sem evento são negados |
+| Operador podia editar tratamento próprio de NC impeditiva | Instruções e tratamento impeditivo são exclusivos de CQ/ADMIN; evidências operacionais continuam permitidas via medição/apontamento |
+| Remover vínculo/impedimento poderia contornar validação de fechamento | Vínculo do problema medido e impedimento protegidos contra edição direta |
+| Revisão de correção em execução dependia do estado da NC | Revisão posterior à abertura permitida em IN_TREATMENT/AWAITING_QUALITY; aprovação global permanece separada |
+| Relatório continha só resposta atual | Snapshot/PDF novos incluem tentativas, regras, NC/ação/fechamento e liberações CQ, mantendo arquivos antigos |
+
+### Testes novos
+
+`tests/correction.test.mjs` usa JWTs reais e confirma diretamente no banco:
+
+1. Viscosidade 3650 cP, limites 3000–3500: não conforme, NC OPEN e OP BLOCKED_QUALITY. Operador não mede nem muda status enquanto bloqueado. IN_TREATMENT não libera. PCP/OPERADOR e atalho genérico CQ são recusados. Liberação explícita mantém NC aberta; 3350 cria tentativa 2 conforme sem apagar tentativa 1 nem fechar NC. CQ revisa/fecha, ator/data/referência são corretos; operador conclui/envia, CQ aprova, PCP finaliza e PDF contém ambas as tentativas.
+2. Nova falha 3600 preserva 3650, bloqueia novamente e mantém a mesma NC. Liberações concorrentes CQ/ADMIN têm um vencedor; fechamento precoce é negado.
+3. Ausência de responsável/ação/observação, Unicode vazio, inativo e status incorreto são recusados, sem liberar a OP.
+4. Liberação não amplia RBAC: operador não altera planejamento/limites/aprovação/status, não fecha NC nem adulterra instruções; outra linha não lê histórico/liberação. BOOLEAN/SELECT preservam regras e tentativas; NC aguardando CQ também permite revisão controlada em execução. Auditoria tem atores reais.
+5. Falha deliberada de notificação desfaz OP, liberação, NC e auditoria na mesma transação.
+
+`tests/correction.spec.mjs`: Chromium, viewport 768×1024, operador 3650 → bloqueio, CQ tratamento sem liberação → confirmação explícita, operador 3350 → histórico e aviso, CQ revisão/fechamento → operador envio → CQ aprovação AWAITING_PCP. Sem overflow horizontal.
+
+`tests/correction-evidence.spec.mjs`: duas medições mantêm evidências distintas; links históricos assinados funcionam para o operador autorizado, com no-store/no-referrer. Anônimo é redirecionado ao login; medição com OP trocada e operador de outra linha recebem 404.
+
+Fixtures de CQ/finalização/auditoria foram adaptadas para executar a liberação explícita e revisar antes do fechamento. Teste geral de NC não impeditiva continua exercitando seu CRUD/evidências; não foi usado para substituir o cenário impeditivo completo. Seletores de medição distinguem salvar a primeira tentativa de registrar nova; alerta da aplicação é distinguido do anúncio de rota do Next. O teste HTTP de evidências usa o redirecionamento 303 vigente, envia cookies seguros explicitamente e verifica destino Storage assinado e MIME PNG, evitando confundir login com arquivo. Esses erros de fixture foram corrigidos e a suíte completa foi repetida com 88/88 aprovados.
+
+### Comandos e evidências
+
+| Verificação | Resultado |
+|---|---|
+| `npm run supabase -- migration up --local` | 28–31 aplicadas; instância existente preservada |
+| `npm run db:types` | Tipos das novas tabelas/RPCs gerados do banco real |
+| `npm run db:lint` | Sem erros no projeto existente e na instalação limpa |
+| `npm run typecheck` | Aprovado |
+| `npm run lint` | Aprovado |
+| `npm run test:unit` | 112/112; zero falhas/ignorados |
+| `npm run test:browser` | 88/88; zero falhas/ignorados |
+| `npm run build` | Aprovado, versão 1.0.1 |
+| PDF real | Download privado; parse pdf-lib, pdfinfo/pdftotext, renderização pdftoppm e inspeção visual |
+
+No cenário novo, banco terminou FINALIZED; snapshot preserva [3650, 3350] em sequência [1, 2], com [não conforme, conforme], faixa 3000–3500 cP, autores/horários/observações e NC fechada por CQ. PDF possui quatro páginas (três de relatório e uma do original), UUID/versão/metadados válidos, ambas as tentativas e fechamento/liberação rastreáveis. Regressão inclui reabertura, nova finalização e preservação dos relatórios anteriores. Também foram baixados cinco relatórios realmente anteriores às migrations 28–31: hashes SHA-256, páginas e identificadores continuam iguais ao registro original. Consulta ao banco existente encontrou zero estados atuais medidos sem tentativa correspondente no histórico.
+
+### Limitações e atualização
+
+- Validação foi local com Supabase real em Docker e Chromium, inclusive instalação limpa. Migrations/publicação remotas não foram executadas. Para atualizar o Supabase vinculado, aplicar `npx supabase db push` sem reset e publicar o código 1.0.1 após homologação.
+- Migração recupera evidências já persistidas na auditoria e snapshot atual. Não pode reconstruir tentativas nunca gravadas; não altera PDFs prontos de versões antigas. Novas tentativas passam a ter histórico estruturado obrigatório.
+- Não houve teste de carga industrial ou alteração dos dashboards; indicadores de conformidade continuam baseados no estado atual, conforme contrato anterior.
+- Permanecem as limitações preexistentes de infraestrutura/URLs bearer/Storage direto/Vercel e a pendência upstream de desenvolvimento descritas no relatório histórico abaixo. Esta correção não declara deploy ou Segurança concluídos.
+
+## Auditoria histórica anterior — 0.8.1 / entrega 1.0.0
+
+
 Data: 08/10/2026. Versão corrigida: 0.8.1.
 
 ## Resultado final
