@@ -1,0 +1,59 @@
+{
+  "name": "op-digital",
+  "version": "1.0.0",
+  "private": true,
+  "engines": {
+    "node": ">=24.0.0"
+  },
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build --webpack",
+    "start": "next start",
+    "typecheck": "next typegen && tsc --noEmit",
+    "lint": "eslint .",
+    "supabase": "bash scripts/supabase.sh",
+    "db:start": "node scripts/start-local.mjs",
+    "db:stop": "bash scripts/supabase.sh stop",
+    "db:reset": "bash scripts/supabase.sh db reset --local",
+    "db:types": "bash scripts/generate-types.sh",
+    "db:lint": "bash scripts/supabase.sh db lint --local --level error",
+    "seed:dev": "node supabase/seed/users.mjs",
+    "test:rls": "node --test tests/rls.test.mjs",
+    "test:auth": "playwright test auth.spec.mjs",
+    "env:local": "node scripts/configure-local.mjs",
+    "db:prepare": "bash scripts/prepare-vfs.sh",
+    "test:admin": "node --test tests/admin.test.mjs && playwright test admin.spec.mjs",
+    "test:browser": "playwright test",
+    "test:pcp": "node --test tests/pcp.test.mjs && playwright test pcp.spec.mjs",
+    "test:operator": "node --test tests/operator.test.mjs && playwright test operator.spec.mjs",
+    "test:quality": "node --test tests/quality.test.mjs && playwright test quality.spec.mjs",
+    "test:finalization": "node --test tests/finalization.test.mjs && playwright test finalization.spec.mjs",
+    "test:dashboard": "playwright test dashboard.spec.mjs",
+    "test:unit": "node --test --test-concurrency=1 tests/*.test.mjs",
+    "test:audit": "node --test --test-concurrency=1 tests/audit.test.mjs tests/uploads.test.mjs && playwright test audit.spec.mjs",
+    "test": "npm run test:unit && npm run test:browser"
+  },
+  "dependencies": {
+    "@pdf-lib/fontkit": "1.1.1",
+    "@supabase/ssr": "0.12.7",
+    "@supabase/supabase-js": "2.117.3",
+    "next": "16.4.0",
+    "pdf-lib": "1.17.1",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "server-only": "0.0.1",
+    "sharp": "0.35.5",
+    "zod": "4.6.5"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.63.0",
+    "@tailwindcss/postcss": "4.3.3",
+    "@types/node": "24.19.1",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "eslint": "9.39.5",
+    "eslint-config-next": "16.4.0",
+    "tailwindcss": "4.3.3",
+    "typescript": "6.0.3"
+  }
+}

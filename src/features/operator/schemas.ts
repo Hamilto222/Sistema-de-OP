@@ -1,0 +1,11 @@
+import { z } from "zod";
+z.config(z.locales.ptBR());
+export const PHOTO_MAX_BYTES = 10 * 1024 * 1024;
+export const NOTE_TYPES = { OBSERVACAO: "Observação", PARADA: "Parada", PERDA: "Perda", AJUSTE: "Ajuste", RETRABALHO: "Retrabalho", MANUTENCAO: "Manutenção", SEGURANCA: "Segurança" } as const;
+const optionalNumber = z.preprocess(value => value === "" || value == null ? null : value, z.coerce.number().finite().min(0).nullable());
+const requiredNumber = z.string().trim().min(1, "Informe a quantidade, inclusive zero.").pipe(z.coerce.number<string>().finite().min(0, "Quantidade não pode ser negativa."));
+export const identitySchema = z.object({ id: z.uuid(), version: z.coerce.number().int().positive() });
+export const measureSchema = z.object({ id: z.uuid(), item_id: z.uuid(), updated_at: z.string().datetime({ offset: true }), valor: z.string().max(4000), observacao: z.string().trim().max(4000), foto_path: z.string().max(250) });
+export const noteSchema = z.object({ id: z.uuid(), tipo: z.enum(Object.keys(NOTE_TYPES) as [keyof typeof NOTE_TYPES, ...(keyof typeof NOTE_TYPES)[]]), descricao: z.string().trim().min(1, "Informe a descrição.").max(4000), tempo_minutos: optionalNumber, quantidade: optionalNumber, unidade: z.string().trim().max(20), foto_path: z.string().max(250) });
+export const finishSchema = identitySchema.extend({ quantidade_produzida: requiredNumber, quantidade_perdida: requiredNumber, observacao_final: z.string().trim().max(4000) });
+export type OperatorState = { error?: string; fields?: Record<string, string>; success?: string };
