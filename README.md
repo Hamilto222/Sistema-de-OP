@@ -1,10 +1,10 @@
-# OP Digital 1.0.1
+# OP Digital 1.0.2
 
 Sistema de Gestão de Ordens de Produção para computadores e tablets industriais. Fluxo real: PCP cria/libera → operador executa → Qualidade revisa/trata NCs → PCP finaliza com PDF privado. PostgreSQL mantém histórico, auditoria e versões após reabertura.
 
 ## Stack e requisitos
 
-Next.js/App Router, TypeScript, React, Tailwind CSS, Zod, Supabase PostgreSQL/Auth/Storage, supabase-js, pdf-lib/fontkit e Sharp. Node.js 24 e npm; Docker para desenvolvimento com Supabase local. CLI Supabase 2.76.15. O instalador incluído atende Linux amd64/arm64; em outros sistemas, instale a CLI oficial compatível. Testes de navegador requerem Chromium; testes de PDF usam Poppler (`pdfinfo`, `pdftotext`, `pdftoppm`). Esses utilitários não são necessários no servidor de produção.
+Next.js/App Router, TypeScript, React, Tailwind CSS, Zod, Supabase PostgreSQL/Auth/Storage, supabase-js, pdf-lib/fontkit e Sharp. Node.js 24 e npm; Docker para desenvolvimento com Supabase local. CLI Supabase 2.76.15. O instalador incluído atende Linux amd64/arm64; em outros sistemas, instale a CLI oficial compatível. Testes de navegador requerem Chromium; testes de PDF usam Poppler (`pdfinfo`, `pdftotext`, `pdftoppm`, `pdfimages`). Esses utilitários não são necessários no servidor de produção.
 
 ## Instalação e desenvolvimento
 
@@ -29,7 +29,7 @@ Copie `.env.example` para `.env.local` ao configurar um projeto hospedado. Não 
 | --- | --- |
 | `NEXT_PUBLIC_SUPABASE_URL` | URL do projeto, obrigatória para autenticação/dados |
 | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Chave publicável ou anon do mesmo projeto |
-| `OP_DIGITAL_COMPANY_NAME` | Opcional: empresa sugerida na finalização, somente servidor |
+| `OP_DIGITAL_COMPANY_NAME` | Opcional, somente servidor: empresa sugerida; padrão Inkor Industria Catarinense de Colas e Rejuntes |
 | `OP_DIGITAL_DEMO_PASSWORD` | Somente processo de seed local, senha escolhida pelo desenvolvedor, mínimo 12 caracteres |
 | `SUPABASE_CLI` | Opcional: caminho da CLI; padrão `.tools/supabase` ou CLI global |
 | `SUPABASE_INTERNAL_IMAGE_REGISTRY` | Opcional: registry das imagens locais, padrão docker.io |
@@ -122,3 +122,17 @@ A Vercel limita o tamanho de requisições a Functions, abaixo do limite de PDF 
 Aplique as novas migrations ao projeto Supabase vinculado com `npx supabase db push`, então publique o código 1.0.1. Nenhum reset ou edição de migration aplicada é necessário. Valide em homologação antes de atualizar a produção.
 
 IN_TREATMENT não libera a OP. CQ/ADMIN deve preencher responsável, ação imediata e observação e confirmar LIBERAR PARA CORREÇÃO. Cada tentativa fica no histórico; CQ revisa a nova medição conforme e fecha a NC separadamente da aprovação da OP. Consulte PROJECT_SPEC.md, ARCHITECTURE.md e TEST_REPORT.md para os contratos e evidências. O ZIP/tag 1.0.0 permanece como entrega histórica dessa versão.
+
+### Identificação institucional 1.0.2
+
+O campo **Empresa no relatório** vem preenchido com `OP_DIGITAL_COMPANY_NAME`, quando não vazio; caso contrário utiliza **Inkor Industria Catarinense de Colas e Rejuntes**. O PCP pode alterar esse nome antes de finalizar. O nome confirmado é congelado no snapshot do relatório; a variável não é obrigatória para iniciar a aplicação.
+
+Em produção, pode-se definir explicitamente:
+
+```dotenv
+OP_DIGITAL_COMPANY_NAME=Inkor Industria Catarinense de Colas e Rejuntes
+```
+
+A logo real deve estar em **`public/logo-inkor.png`**, sem substituição ou alteração. O servidor lê esse arquivo a partir da raiz do projeto, incorpora o PNG mantendo sua proporção e não utiliza URL localhost. O tracing do Next inclui esse caminho nas Functions de produção, além das fontes existentes. A ausência, falha de leitura ou imagem inválida gera aviso técnico sem dados da OP e permite gerar o PDF sem imagem, mantendo o nome. Não há logo substituta.
+
+A imagem institucional real integra o repositório e é utilizada também na pequena prévia do formulário PCP, sem otimização ou alteração do arquivo. Novos relatórios recebem o cabeçalho institucional; PDFs anteriores, snapshots, versões e regras de finalização permanecem preservados. Esta atualização não requer migration.

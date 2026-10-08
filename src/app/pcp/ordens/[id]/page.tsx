@@ -1,3 +1,4 @@
+import { defaultCompanyName } from "@/features/finalization/branding";
 import Link from "next/link";
 import { FinalizeForm, ReopenForm } from "@/features/finalization/forms";
 import { OrderReports } from "@/features/finalization/reports";
@@ -50,7 +51,7 @@ export default async function OrderDetail({ params, searchParams }: { params: Pr
     <Section title="Dados gerais"><dl className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">{data.map(([label, value]) => <div key={label}><dt className="text-sm font-semibold text-slate-600">{label}</dt><dd className="mt-1 break-words">{value}</dd></div>)}</dl></Section>
     <Section title="PDF original">{order.pdf_original_path ? <a href={`/pcp/ordens/${id}/pdf`} target="_blank" rel="noreferrer" className="button-secondary">Visualizar PDF original</a> : <p className="text-slate-600">PDF ainda não anexado. A OP permanece em rascunho até concluir a preparação.</p>}{order.status === "DRAFT" && <UploadOriginalForm key={order.version} id={id} version={order.version} hasPdf={!!order.pdf_original_path} />}</Section>
     {order.status === "DRAFT" && <Section title="Preparação"><PrepareOrderForm id={id} version={order.version} /></Section>}
-    {order.status === "AWAITING_PCP" && order.aprovacao_cq === "APPROVED" && <Section title="Finalização PCP"><FinalizeForm id={id} version={order.version} company={order.empresa_nome || process.env.OP_DIGITAL_COMPANY_NAME || ""}/></Section>}
+    {order.status === "AWAITING_PCP" && order.aprovacao_cq === "APPROVED" && <Section title="Finalização PCP"><FinalizeForm id={id} version={order.version} company={defaultCompanyName()}/></Section>}
     <OrderReports id={id}/>
     {order.status === "FINALIZED" && (profile.role === "ADMIN" || profile.can_reopen_orders) && <Section title="Reabertura autorizada"><ReopenForm id={id} version={order.version}/></Section>}
     <Section title="Checklist da OP">{order.checklist_template_nome && <p className="font-medium">{order.checklist_template_nome} · Rev. {order.checklist_template_revisao}{order.checklist_template_descricao && <span className="mt-2 block text-sm text-slate-600">{order.checklist_template_descricao}</span>}</p>}

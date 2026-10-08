@@ -6,7 +6,7 @@ const nextConfig: NextConfig = {
     { key: "X-Frame-Options", value: "DENY" },
       { key: "Referrer-Policy", value: "no-referrer" },
   ] }]; },
-  outputFileTracingIncludes: { "/*": ["./assets/fonts/*.ttf"] },
+  outputFileTracingIncludes: { "/*": ["./assets/fonts/*.ttf", "./public/logo-inkor.png"] },
   experimental: { serverActions: { bodySizeLimit: "22mb" }, proxyClientMaxBodySize: "22mb" },
 };
 export default nextConfig;

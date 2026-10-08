@@ -222,3 +222,33 @@ A suíte completa foi repetida após remover exports sem uso. Depois, a única a
 Execução 1.0.0: OP `OP-AUDIT-b37038e4-aea5-46a9-ab94-96fac1899510`, UUID `ca3ce9ec-c98e-44a5-8b20-9fd7b8f00c52`, NC `NC-2026-00497`. Estado final confirmado `FINALIZED`; versões de relatório 10 e 15 preservadas. PDF atual baixado novamente do Storage privado e aberto por pdf-lib/Poppler (`/tmp/op-digital-release-final.pdf`). Artefatos temporários são evidência local e não integram o pacote.
 
 Pacote: `op-digital-v1.0.0.zip`, com fonte, testes, migrations, seeds úteis, configurações e documentação; sem node_modules, .next, .git, ferramentas locais, credenciais, .env real ou resultados temporários. CRC e conteúdo conferidos durante a geração. Limitações e pendências de Segurança/Deploy permanecem explícitas.
+
+## Identificação institucional 1.0.2 — 08/10/2026
+
+Escopo: somente sugestão de empresa na finalização PCP e cabeçalho dos novos relatórios. Nenhuma migration, alteração de RPC/RLS, permissão ou máquina de estados. Testes usam novas OPs/identidades locais; não finalizam a OP de teste do usuário nem regeneram documentos existentes.
+
+### Execuções e resultado
+
+- `npm run typecheck`: aprovado. Corrigida a inicialização explícita da página PDF apontada pelo TypeScript durante a implementação.
+- `npm run lint`: aprovado.
+- `npm run build`: aprovado, build de produção Webpack, incluindo configuração de tracing do caminho da logo.
+- `node --test --test-concurrency=1 tests/branding.test.mjs tests/finalization.test.mjs tests/correction.test.mjs`: **24/24 aprovados**, zero falhas/ignorados.
+- `npx playwright test finalization.spec.mjs audit.spec.mjs`: **13/13 aprovados**, Chromium contra build de produção. Fluxo real, regras de finalização, permissões, auditoria, tablet 768×1024, download privado, retomada e reabertura com versões preservadas.
+- `OP_DIGITAL_COMPANY_NAME='Empresa configurada para produção' npx playwright test finalization.spec.mjs --grep 'empresa inicial'`: **1/1 aprovado** com servidor de produção iniciado nesse ambiente. Campo inicial usa env, aceita edição manual e snapshot/PDF conservam o nome confirmado. O mesmo caso sem env verifica o fallback Inkor.
+- Total relevante: **38 execuções aprovadas (24 Node + 14 Chromium)**.
+
+### PDF e histórico
+
+Os seis casos novos em `branding.test.mjs` verificam env definida/ausente/vazia; geração e incorporação de PNG local; ausência, imagem inválida e falha de leitura; nome, título, OP, emissão, checklist, tentativas e aprovações preservados. O PNG de teste é a evidência já existente na suíte, usada exclusivamente em diretório temporário isolado, removido ao término. Não representa a marca, não cria imagem no projeto e não altera a logo real.
+
+PDF real `/tmp/op-digital-v1.0.2-validation.pdf`: reaberto por pdf-lib e Poppler, autor Inkor, UUID correto, três páginas A4, sem corrupção. Primeira página renderizada por pdftoppm e inspecionada visualmente: nome, título, OP, emissão e versão alinhados; textos e checklist legíveis. Artefato temporário fica fora do Git.
+
+A regressão real 3650 → 3350 produziu PDF combinado de quatro páginas (`/tmp/op-digital-correction-flow.pdf`): ambas as tentativas na ordem correta, resultados distintos, NC relacionada, ação corretiva, fechamento CQ e aprovações. A suíte de finalização confirmou hashes/UUID/páginas, imutabilidade, retomada e duas versões após reabertura, sem sobrescrever o relatório anterior. NCs e conteúdo industrial existente continuam no relatório.
+
+### Logo institucional real e deploy
+
+O arquivo chegou ao remoto durante a validação no commit `a02547b` (logo antes disponível somente na máquina do usuário). O checkout foi atualizado por fetch/rebase, preservando esse commit. Nenhuma imagem foi gerada, substituída ou alterada. A validação final foi repetida com o arquivo oficial presente e a pequena prévia PCP, sem otimização de imagem.
+
+PDF `/tmp/op-digital-v1.0.2-inkor.pdf`: três páginas A4, autor Inkor, UUID correto, aproximadamente 755 KB; aberto por pdf-lib/Poppler e renderizado/inspecionado visualmente com a logo oficial no cabeçalho. `pdfimages -list` confirmou imagem 5063×1060 e densidades X/Y iguais (3038), preservando proporção e transparência. Hash SHA256 da logo antes/depois: `daf0e1632d18edc0f5f432ad8c7d17029a3b6adbb12342deccc6223ab5653b97`. Nenhum diff no arquivo.
+
+Os manifests `.next/server/**/*.nft.json`, incluindo a página PCP, contêm `public/logo-inkor.png`; a logo faz parte do tracing real do build. Falhas de leitura/PNG ausente/corrompido continuam cobertas por testes isolados e aviso técnico seguro. Deploy Vercel remoto não foi executado; produção local com o build real foi validada.

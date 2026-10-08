@@ -21,14 +21,20 @@ export async function generateFinalPdf(snapshot: ReportSnapshot, original?: Uint
   const pdf = await PDFDocument.create(); pdf.registerFontkit(fontkit);
   const [regularBytes, boldBytes] = await Promise.all([readFile(join(process.cwd(), "assets/fonts/OpenSans-Regular.ttf")), readFile(join(process.cwd(), "assets/fonts/OpenSans-Bold.ttf"))]);
   const regular = await pdf.embedFont(regularBytes, { subset: false }); const bold = await pdf.embedFont(boldBytes, { subset: false });
+  let logo;
+  try { logo = await pdf.embedPng(await readFile(join(process.cwd(), "public", "logo-inkor.png"))); }
+  catch { console.warn("[OP Digital] Logo institucional indisponível; relatório final gerado sem imagem."); }
   const generatedAt = new Date(); const ink = rgb(0.08, 0.17, 0.31); const body = rgb(0.18, 0.23, 0.3);
   let page: PDFPage; let y = 0; const width = 495;
   const supported = new Set(regular.getCharacterSet());
   const clean = (value: string) => [...value.replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f]/g, " ")].map(char => char === "\n" || supported.has(char.codePointAt(0)!) ? char : `[U+${char.codePointAt(0)!.toString(16).toUpperCase()}]`).join("");
-  function newPage() {
-    page = pdf.addPage([595.28, 841.89]); y = 755;
+  function newPage(first = false) {
+    page = pdf.addPage([595.28, 841.89]); y = first ? 796 : 755;
+    if (!first) {
     page.drawText("OP Digital · Relatório final", { x: 50, y: 796, size: 15, font: bold, color: ink });
     page.drawLine({ start: { x: 50, y: 782 }, end: { x: 545, y: 782 }, thickness: 1, color: rgb(0.75, 0.8, 0.86) });
+    }
+    return page;
   }
   function line(text: string, font: PDFFont = regular, size = 10) {
     if (y < 65) newPage(); page.drawText(text, { x: 50, y, size, font, color: body }); y -= size + 6;
@@ -49,7 +55,19 @@ export async function generateFinalPdf(snapshot: ReportSnapshot, original?: Uint
   function section(title: string) { if (y < 125) newPage(); y -= 12; paragraph(title, bold, 13); y -= 3; }
   const person = (id: string | null) => snapshot.people.find(value => value.id === id)?.nome || "Não informado";
   const o = snapshot.order;
-  newPage(); paragraph(snapshot.empresa, bold, 17); paragraph(`OP ${o.numero_op}`, bold, 15);
+  page = newPage(true);
+  if (logo) {
+    const scale = Math.min(120 / logo.width, 48 / logo.height);
+    const dimensions = logo.scale(scale);
+    page.drawImage(logo, { x: 50, y: y - dimensions.height, ...dimensions });
+    y -= dimensions.height + 20;
+  }
+  paragraph(snapshot.empresa, bold, 15);
+  paragraph("RELATÓRIO FINAL DA ORDEM DE PRODUÇÃO", bold, 13);
+  paragraph(`OP: ${o.numero_op}`, bold, 12);
+  paragraph(`Data de emissão: ${date(generatedAt.toISOString()).replace(",", "")} · Versão: ${snapshot.version}`);
+  page.drawLine({ start: { x: 50, y: y + 2 }, end: { x: 545, y: y + 2 }, thickness: 1, color: rgb(0.75, 0.8, 0.86) });
+  y -= 16;
   for (const value of [
     `Produto: ${snapshot.product.descricao}`, `Código: ${snapshot.product.codigo} · Revisão: ${snapshot.product.revisao}`,
     `Lote: ${o.lote} · Linha: ${snapshot.line.nome}`, `Planejada: ${quantity(o.quantidade_planejada)} ${o.unidade}`,

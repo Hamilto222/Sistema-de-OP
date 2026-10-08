@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.0.2 — 08/10/2026
+
+- Campo Empresa no relatório preenchido pela variável opcional OP_DIGITAL_COMPANY_NAME ou pelo nome padrão Inkor Industria Catarinense de Colas e Rejuntes, mantendo edição manual pelo PCP e texto de apoio.
+- Cabeçalho dos novos PDFs com nome institucional, título, OP, emissão e versão; leitura servidor de public/logo-inkor.png com proporção preservada, tracing de produção e fallback seguro sem imagem. Logo real recebida no commit remoto a02547b e preservada integralmente; prévia simples no formulário PCP.
+- Conteúdo integral, histórico de medições 1.0.1, aprovações e relatórios anteriores preservados. Sem migration ou alteração das regras de negócio.
+- Testes de configuração, PNG isolado, ausência/imagem inválida, PDF real, campo PCP e regressão de finalização/correção; evidências em TEST_REPORT.md.
+
 ## 1.0.1 — 08/10/2026
 
 - Corrigido impasse da NC impeditiva: IN_TREATMENT não libera a OP; CQ/ADMIN executa LIBERAR PARA CORREÇÃO com responsável ativo, ação imediata, observação e confirmação.

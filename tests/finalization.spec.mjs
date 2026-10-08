@@ -15,6 +15,22 @@ test('PCP finaliza em tablet; relatório real privado, combinado e íntegro disp
  const id=await f.ready();await page.setViewportSize({width:768,height:1024});await login(page);await finish(page,id);const reports=checked(await f.admin.from('final_reports').select().eq('production_order_id',id));expect(reports).toHaveLength(1);const r=reports[0];expect(r.status).toBe('READY');expect((await f.read(id)).aprovacao_pcp).toBe('APPROVED');await expect(page.getByRole('button',{name:'FINALIZAR OP',exact:true})).toHaveCount(0);await expect(page.getByRole('main')).toContainText('Inclui PDF original');expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
  const response=await context.request.get(`/sistema/ordens/${id}/relatorios/${r.id}`,{headers:{Cookie:await cookie(context)},maxRedirects:0});expect(response.status()).toBe(303);expect(response.headers()['cache-control']).toBe('private, no-store');const file=await context.request.get(response.headers().location);expect(file.status()).toBe(200);expect(file.headers()['content-type']).toContain('application/pdf');const bytes=await file.body(),pdf=await PDFDocument.load(bytes);expect(pdf.getPageCount()).toBe(r.pages);expect(pdf.getSubject()).toBe(r.id);expect(createHash('sha256').update(bytes).digest('hex')).toBe(r.sha256);
 });
+test('empresa inicial usa configuração ou fallback Inkor e permite edição manual',async({page})=>{
+ const id=await f.ready();await login(page);await page.goto(`/pcp/ordens/${id}`);
+ const company=page.getByLabel('Empresa no relatório',{exact:true});
+ await expect(page.getByRole('img',{name:'Inkor',exact:true})).toBeVisible();
+ await expect.poll(()=>page.getByRole('img',{name:'Inkor',exact:true}).evaluate(image=>image.complete&&image.naturalWidth===5063&&image.naturalHeight===1060)).toBe(true);
+ await expect(company).toHaveValue(process.env.OP_DIGITAL_COMPANY_NAME?.trim()||'Inkor Industria Catarinense de Colas e Rejuntes');
+ await expect(page.getByText('Este nome será utilizado no cabeçalho do relatório final.',{exact:true})).toBeVisible();
+ await company.fill('Empresa confirmada manualmente pelo PCP');
+ await page.getByRole('button',{name:'FINALIZAR OP',exact:true}).click();
+ await expect(page).toHaveURL(new RegExp(`/pcp/ordens/${id}\\?sucesso=finalizada$`));
+ const reports=checked(await f.admin.from('final_reports').select().eq('production_order_id',id));
+ expect(reports[0].snapshot.empresa).toBe('Empresa confirmada manualmente pelo PCP');
+ expect(reports[0].status).toBe('READY');expect((await f.read(id)).status).toBe('FINALIZED');
+ const bytes=await checked(await f.clients[1].storage.from('final-reports').download(reports[0].path)).arrayBuffer();
+ expect((await PDFDocument.load(bytes)).getAuthor()).toBe('Empresa confirmada manualmente pelo PCP');
+});
 test('empresa obrigatória também no backend e botão ausente sem aprovação CQ',async({page})=>{
  const id=await f.ready();await login(page);await page.goto(`/pcp/ordens/${id}`);const button=page.getByRole('button',{name:'FINALIZAR OP',exact:true});await page.getByLabel('Empresa no relatório',{exact:true}).fill('');await button.evaluate(button=>button.form.noValidate=true);await button.click();await expect(page.getByRole('main').getByRole('alert')).toContainText('nome da empresa');expect((await f.read(id)).status).toBe('AWAITING_PCP');const draft=await f.create({released:false});await page.goto(`/pcp/ordens/${draft}`);await expect(page.getByRole('button',{name:'FINALIZAR OP',exact:true})).toHaveCount(0);
 });

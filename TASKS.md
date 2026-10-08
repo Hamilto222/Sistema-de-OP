@@ -139,3 +139,12 @@ Resolver a pendência upstream de Segurança registrada em TEST_REPORT.md e plan
 - [x] Typecheck, lint, SQL e build de produção aprovados; documentação do contrato atualizada.
 
 **Resultado final: 200 cenários (112 Node + 88 Chromium), typecheck, lint, SQL e build aprovados.** PDF com 3650/3350 aberto e inspecionado; cinco PDFs anteriores conferidos por hash/páginas/UUID. Resultados em TEST_REPORT.md. Publicação/migrations remotas continuam pendentes; o ZIP/tag 1.0.0 permanece histórico dessa versão.
+
+## Identificação institucional — 1.0.2
+
+- [x] Empresa opcional por env e fallback Inkor no campo editável PCP, com texto de apoio.
+- [x] Cabeçalho dos novos PDFs com empresa, título, OP, emissão, versão e leitura proporcional do PNG institucional quando disponível; fallback seguro e tracing de produção.
+- [x] Conteúdo/histórico 1.0.1, regras de finalização e PDFs antigos preservados; nenhuma migration.
+- [x] Typecheck, lint, build, PDF real aberto/inspecionado e 38 execuções relevantes aprovados (24 Node + 14 Chromium).
+- [x] Versão 1.0.2 e documentação atualizada.
+- [x] Logo real do commit remoto a02547b incorporada sem alteração; PDF oficial aberto/inspecionado, hash/proporção preservados, prévia PCP e inclusão nos manifests de tracing verificadas.
