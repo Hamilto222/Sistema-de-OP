@@ -252,3 +252,20 @@ O arquivo chegou ao remoto durante a validação no commit `a02547b` (logo antes
 PDF `/tmp/op-digital-v1.0.2-inkor.pdf`: três páginas A4, autor Inkor, UUID correto, aproximadamente 755 KB; aberto por pdf-lib/Poppler e renderizado/inspecionado visualmente com a logo oficial no cabeçalho. `pdfimages -list` confirmou imagem 5063×1060 e densidades X/Y iguais (3038), preservando proporção e transparência. Hash SHA256 da logo antes/depois: `daf0e1632d18edc0f5f432ad8c7d17029a3b6adbb12342deccc6223ab5653b97`. Nenhum diff no arquivo.
 
 Os manifests `.next/server/**/*.nft.json`, incluindo a página PCP, contêm `public/logo-inkor.png`; a logo faz parte do tracing real do build. Falhas de leitura/PNG ausente/corrompido continuam cobertas por testes isolados e aviso técnico seguro. Deploy Vercel remoto não foi executado; produção local com o build real foi validada.
+
+## Legibilidade do relatório 1.0.3 — 09/10/2026
+
+Alteração exclusiva da apresentação no renderizador PDF. Sem migration, alteração de RPC/RLS, permissões ou estados. Novo relatório usa abertura com identificação e cards de quantidades; seções numeradas; esperado/obtido em colunas; resultado textual/colorido; tentativas com guia visual e medição atual; referência à NC uma vez por item; blocos de apontamentos/NC/liberações e aprovações agrupadas. Cabeçalho de continuação informa o item quando há quebra de página. Logo real preservada pelo hash já registrado.
+
+Validação final:
+
+- `npm run typecheck`, `npm run lint`, `npm run build`: aprovados.
+- `node --test --test-concurrency=1 tests/pdf-layout.test.mjs tests/branding.test.mjs tests/finalization.test.mjs tests/correction.test.mjs`: **26/26 aprovados**, sem falhas/ignorados.
+- `npx playwright test finalization.spec.mjs`: **11/11 aprovados** contra build de produção. Finalização em tablet, arquivo real privado, nome configurável, assinatura/permissões, retomada, reabertura e versões imutáveis preservados.
+- **37 cenários relevantes aprovados**. Testes de layout repetidos após reforçar a verificação de coordenadas negativas/texto extraível.
+
+Dois novos cenários em `tests/pdf-layout.test.mjs` usam snapshot PostgreSQL real e cópias com texto extremo para verificar margens por `pdftotext -bbox`, preservação integral do snapshot, conteúdo extraível, quebra de palavras sem espaços, colunas extensas, instruções/observações longas e original anexado. Teste real de correção agora também confirma a identificação MEDIÇÃO ATUAL. Testes existentes continuam verificando ambos valores 3650/3350, checklist/NC/aprovações, logo real/ausente/corrompida, mais de 1000 apontamentos e imutabilidade/retomada.
+
+PDFs reais gerados pelo fluxo local e reabertos por pdf-lib/Poppler; páginas de abertura, viscosidade e aprovações renderizadas por pdftoppm e inspecionadas. Corrigidos espaçamento de painel e quebra entre aprovações encontrados na inspeção inicial. O PDF de correção tem cinco páginas de relatório e uma do original, com ambas tentativas, NC/ação/fechamento e assinaturas. O original mantém sua página intacta; a logo continua SHA256 `daf0e1632d18edc0f5f432ad8c7d17029a3b6adbb12342deccc6223ab5653b97`.
+
+Artefatos temporários em `/tmp/op-digital-correction-flow.pdf` e `/tmp/op-digital-v1.0.2-inkor.pdf` (nome legado da fixture) ficam fora do Git. A OP de teste do usuário não foi finalizada/regenerada; somente fixtures locais novas. PDFs READY anteriores não são reescritos. Paginação prioriza clareza e pode resultar em mais páginas. Não foi executado deploy remoto.

@@ -177,3 +177,7 @@ Transições críticas continuam centralizadas no PostgreSQL: RELEASED → IN_PR
 - Usar exclusivamente `public/logo-inkor.png`, sem modificar a imagem ou criar substituta. Leitura no servidor pela raiz do projeto, incluindo o arquivo no tracing de produção; ausência/falha/PNG inválido não impede finalização e gera aviso técnico seguro. A logo real faz parte do repositório e também aparece como pequena prévia no formulário PCP, ocultada em caso de erro de carregamento.
 - Cabeçalho profissional com empresa confirmada, logo proporcional quando disponível, título, OP, emissão em America/Sao_Paulo e versão. Preservar integralmente checklist, tentativas, NCs, correções, responsáveis/aprovações e dados existentes.
 - Aplicar somente a novos PDFs; nunca substituir relatórios anteriores ou modificar snapshots. Sem mudança de banco ou máquina de estados.
+
+## Legibilidade dos relatórios — 1.0.3
+
+Novos PDFs organizam identificação/quantidades, checklist com esperado e obtido lado a lado, histórico sequencial com medição atual, NCs/correções e aprovações. Seções numeradas, texto junto às cores e contexto de continuação nas quebras de página. Preservar todo conteúdo oficial e versão anterior; não alterar regras ou recalcular conformidade no renderizador. Logo real permanece intacta.

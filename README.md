@@ -1,4 +1,4 @@
-# OP Digital 1.0.2
+# OP Digital 1.0.3
 
 Sistema de Gestão de Ordens de Produção para computadores e tablets industriais. Fluxo real: PCP cria/libera → operador executa → Qualidade revisa/trata NCs → PCP finaliza com PDF privado. PostgreSQL mantém histórico, auditoria e versões após reabertura.
 
@@ -136,3 +136,7 @@ OP_DIGITAL_COMPANY_NAME=Inkor Industria Catarinense de Colas e Rejuntes
 A logo real deve estar em **`public/logo-inkor.png`**, sem substituição ou alteração. O servidor lê esse arquivo a partir da raiz do projeto, incorpora o PNG mantendo sua proporção e não utiliza URL localhost. O tracing do Next inclui esse caminho nas Functions de produção, além das fontes existentes. A ausência, falha de leitura ou imagem inválida gera aviso técnico sem dados da OP e permite gerar o PDF sem imagem, mantendo o nome. Não há logo substituta.
 
 A imagem institucional real integra o repositório e é utilizada também na pequena prévia do formulário PCP, sem otimização ou alteração do arquivo. Novos relatórios recebem o cabeçalho institucional; PDFs anteriores, snapshots, versões e regras de finalização permanecem preservados. Esta atualização não requer migration.
+
+### Layout do relatório 1.0.3
+
+Novos relatórios finais apresentam uma página inicial com identificação e quantidades, seções numeradas, comparação esperado/obtido em duas colunas, resultados com texto e cor, histórico sequencial com medição atual destacada e blocos de NCs/aprovações. Quebras de página preservam margens e identificam a continuação do item. Todo conteúdo, logo real, evidências e original anexado são preservados. PDFs anteriores não são regenerados; nenhuma migration é necessária.

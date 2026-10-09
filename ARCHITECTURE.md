@@ -1,4 +1,4 @@
-# Arquitetura — OP Digital 1.0.1
+# Arquitetura — OP Digital 1.0.3
 
 ## Stack e estrutura
 Next.js App Router, TypeScript estrito, Tailwind CSS e Server Components por padrão. Node.js 24, versões exatas e package-lock.json. Fonte do sistema; build Webpack. Client Components nas interações de login, menu de tablet, formulários, editor de itens e confirmações. Leituras e mutações permanecem no servidor.
@@ -209,3 +209,7 @@ Telas alteradas: execução `/operador/op/[id]`, OP CQ `/qualidade/op/[id]` e de
 ## Identificação institucional — 1.0.2
 
 `features/finalization/branding.ts` resolve no servidor o nome opcional OP_DIGITAL_COMPANY_NAME e o fallback Inkor Industria Catarinense de Colas e Rejuntes; a página PCP passa a sugestão ao formulário editável. O snapshot continua usando o nome confirmado na finalização. `pdf.ts` lê `public/logo-inkor.png` via `process.cwd()` e incorpora PNG com escala proporcional; falha de leitura/decodificação gera aviso estático sem dados industriais e segue sem imagem. `next.config.ts` inclui o caminho no outputFileTracingIncludes para as Functions. Não há dependência de HTTP/localhost nem alteração de RPC, RLS ou migrations. Relatórios READY e objetos existentes não são regenerados. A imagem institucional real, incorporada do commit remoto a02547b, permanece sem alteração. A prévia PCP usa next/image sem otimização, com proporção original e ocultação em caso de erro.
+
+## Apresentação do relatório — 1.0.3
+
+A alteração fica no renderizador puro `features/finalization/pdf.ts`: helpers de quebra de texto por largura real da fonte, comparação em duas colunas, cards de quantidades, seções/subtítulos e reserva de espaço. Histórico mantém toda tentativa e indica a maior sequência do snapshot como medição atual. NC relacionada aparece uma vez por item e mantém ação/fechamento. Paginação preserva margens, identifica item em continuação e agrupa aprovações quando possível. Snapshot, RPCs, Storage, autorização, retomada e combinação do original não mudam. Aplicação somente a novos bytes, nunca a relatórios READY existentes.

@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.0.3 — 09/10/2026
+
+- Reorganizado somente o layout dos novos relatórios: identificação e quantidades na abertura, seções numeradas, esperado/obtido lado a lado e resultados legíveis com texto/cor.
+- Tentativas em sequência visual com medição atual destacada; referência à NC exibida uma vez por item, preservando todas as informações. Blocos de apontamentos, NCs/liberações e aprovações mais claros.
+- Paginação evita títulos isolados, mantém aprovações agrupadas e identifica item em continuação. Testes de margens, campos longos, integridade de snapshot/conteúdo e original anexado.
+- Logo institucional intacta, sem nova dependência, migration ou alteração das regras de finalização; PDFs anteriores preservados.
+
 ## 1.0.2 — 08/10/2026
 
 - Campo Empresa no relatório preenchido pela variável opcional OP_DIGITAL_COMPANY_NAME ou pelo nome padrão Inkor Industria Catarinense de Colas e Rejuntes, mantendo edição manual pelo PCP e texto de apoio.

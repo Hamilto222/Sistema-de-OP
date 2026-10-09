@@ -148,3 +148,11 @@ Resolver a pendência upstream de Segurança registrada em TEST_REPORT.md e plan
 - [x] Typecheck, lint, build, PDF real aberto/inspecionado e 38 execuções relevantes aprovados (24 Node + 14 Chromium).
 - [x] Versão 1.0.2 e documentação atualizada.
 - [x] Logo real do commit remoto a02547b incorporada sem alteração; PDF oficial aberto/inspecionado, hash/proporção preservados, prévia PCP e inclusão nos manifests de tracing verificadas.
+
+## Legibilidade do relatório — 1.0.3
+
+- [x] Abertura com identificação/quantidades, seções numeradas e comparação esperado/obtido.
+- [x] Histórico sequencial com medição atual, resultados com cor e texto, NC relacionada sem repetição desnecessária e aprovações agrupadas.
+- [x] Paginação com contexto de continuação, quebra por largura real da fonte e margens verificadas em campos extensos.
+- [x] Typecheck, lint, build, 26 testes Node e 11 Chromium aprovados; PDFs reais renderizados e inspecionados.
+- [x] Conteúdo, snapshot, logo, original anexado, regras e relatórios anteriores preservados; sem migration/dependência nova.
